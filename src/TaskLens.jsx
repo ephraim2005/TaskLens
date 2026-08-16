@@ -137,15 +137,14 @@ export default function TaskLens() {
             ]
           : [{ type: "text", text: `${EXTRACTION_INSTRUCTIONS}\n\nSOURCE TEXT:\n"""${textSnippet}"""` }];
 
-      const response = await fetch("https://api.anthropic.com/v1/messages", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          model: "claude-sonnet-4-6",
-          max_tokens: 1000,
-          messages: [{ role: "user", content }],
-        }),
+      const response = await fetch("/api/extract", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ content }),
       });
+
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || `Request failed (${response.status})`);
 
       if (!response.ok) throw new Error(`Request failed (${response.status})`);
       const data = await response.json();
