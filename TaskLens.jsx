@@ -1,5 +1,5 @@
 import React, { useState, useRef, useCallback } from "react";
-import { Aperture, Upload, Image as ImageIcon, Type, X, Pencil, Trash2, Plus, Loader2, Calendar, Check, ScanLine, AlertCircle } from "lucide-react";
+import { Aperture, Upload, Image as ImageIcon, Type, X, Pencil, Trash2, Plus, Loader2, Calendar, Check, ScanLine, AlertCircle, Sun, Moon } from "lucide-react";
 
 const FONT_IMPORT = `@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap');`;
 
@@ -25,8 +25,47 @@ Rules:
 - "description" is one brief sentence of context, or "" if none is evident.
 - "dueDate" is formatted like "Oct 14, 2026" if a year is inferable, otherwise "Oct 14". Use "" if no date is present in the source.
 - If truly nothing task-like is present, return {"tasks":[]}.`;
+const THEMES = {
+  light: {
+    bg: "#FAF9F6",
+    ink: "#1B1F1D",
+    sub: "#6B7570",
+    faint: "#A9A499",
+    panelBg: "#FFFFFF",
+    border: "#E4E1D8",
+    borderHover: "#C9C3B2",
+    dashedBg: "#FFFFFF",
+    dashedBgActive: "#FBF3E4",
+    amber: "#E1A339",
+    teal: "#2C6E76",
+    tealBg: "#EAF3F3",
+    error: "#A14E1F",
+    invert: "#FAF9F6",
+    overlay: "rgba(27,31,29,0.75)",
+  },
+  dark: {
+    bg: "#15181A",
+    ink: "#F2F1EC",
+    sub: "#9AA39D",
+    faint: "#5F6864",
+    panelBg: "#1E2224",
+    border: "#333A38",
+    borderHover: "#4A524E",
+    dashedBg: "#1E2224",
+    dashedBgActive: "#2B2617",
+    amber: "#E9B355",
+    teal: "#5FA9B0",
+    tealBg: "#1D2E2F",
+    error: "#E08B5B",
+    invert: "#15181A",
+    overlay: "rgba(0,0,0,0.75)",
+  },
+};
+
 
 export default function TaskLens() {
+  const [dark, setDark] = useState(false);
+  const theme = dark ? THEMES.dark : THEMES.light;
   const [tasks, setTasks] = useState([]);
   const [mode, setMode] = useState("image"); // 'image' | 'text'
   const [imagePreview, setImagePreview] = useState(null);
@@ -158,53 +197,98 @@ export default function TaskLens() {
     setTasks((prev) => prev.filter((t) => t.id !== id));
     if (editingId === id) setEditingId(null);
   };
+  
+  const cardStyle = { border: `1px solid ${theme.border}`, background: theme.panelBg, borderRadius: 4, padding: "12px 14px" };
+  const inputStyle = { width: "100%", boxSizing: "border-box", border: `1px solid ${theme.border}`, borderRadius: 3, padding: "7px 9px", fontSize: 13, outline: "none", background: theme.panelBg, color: theme.ink };
+  const primaryBtnStyle = { display: "flex", alignItems: "center", justifyContent: "center", gap: 7, background: theme.ink, color: theme.invert, border: "none", borderRadius: 4, padding: "10px 16px", fontSize: 13, fontWeight: 600 };
+  const smallBtnStyle = { display: "flex", alignItems: "center", gap: 5, background: theme.panelBg, color: theme.ink, border: `1px solid ${theme.border}`, borderRadius: 4, padding: "6px 10px", fontSize: 12, fontWeight: 500, cursor: "pointer" };
+  const ghostIconBtn = { background: "transparent", border: "none", color: theme.faint, cursor: "pointer", padding: 4, borderRadius: 3, display: "flex" };
+  const iconBtnStyle = { position: "absolute", top: 6, right: 6, background: theme.overlay, border: "none", borderRadius: "50%", width: 22, height: 22, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" };
 
   return (
     <div
       style={{
         fontFamily: "'Inter', sans-serif",
-        background: "#FAF9F6",
-        color: "#1B1F1D",
+        background: theme.bg,
+        color: theme.ink,
         minHeight: "100%",
         padding: "32px 20px",
         boxSizing: "border-box",
+        transition: "background 0.2s ease, color 0.2s ease",
       }}
     >
       <style>{FONT_IMPORT}</style>
       <style>{`
         .tl-mono { font-family: 'IBM Plex Mono', monospace; letter-spacing: 0.02em; }
         .tl-display { font-family: 'Space Grotesk', sans-serif; }
-        .tl-corner { position: absolute; width: 18px; height: 18px; border-color: #E1A339; }
+        .tl-corner { position: absolute; width: 18px; height: 18px; border-color: ${theme.amber}; }
         .tl-btn { transition: transform 0.12s ease, box-shadow 0.12s ease; }
         .tl-btn:active { transform: scale(0.97); }
         .tl-card { transition: border-color 0.15s ease, box-shadow 0.15s ease; }
-        .tl-card:hover { border-color: #C9C3B2; }
+        .tl-card:hover { border-color: ${theme.borderHover}; }
         input, textarea { font-family: 'Inter', sans-serif; }
-        ::placeholder { color: #A9A499; }
+        .tl-toggle:hover { border-color: ${theme.borderHover}; }
+        ::placeholder { color: ${theme.faint}; }
+        @keyframes spin { from { transform: rotate(0deg);} to { transform: rotate(360deg);} }
       `}</style>
 
       <div style={{ maxWidth: 960, margin: "0 auto" }}>
         {/* Header */}
-        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 6 }}>
-          <div
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <div
+              style={{
+                width: 36,
+                height: 36,
+                borderRadius: "50%",
+                border: `2px solid ${theme.ink}`,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                flexShrink: 0,
+              }}
+            >
+              <Aperture size={18} strokeWidth={2} />
+            </div>
+            <h1 className="tl-display" style={{ fontSize: 26, fontWeight: 700, margin: 0, letterSpacing: "-0.01em" }}>
+              TaskLens
+            </h1>
+          </div>
+
+          <button
+            className="tl-btn tl-toggle"
+            onClick={() => setDark((d) => !d)}
+            aria-label={dark ? "Switch to light mode" : "Switch to dark mode"}
             style={{
-              width: 36,
-              height: 36,
-              borderRadius: "50%",
-              border: "2px solid #1B1F1D",
               display: "flex",
               alignItems: "center",
-              justifyContent: "center",
-              flexShrink: 0,
+              gap: 6,
+              background: theme.panelBg,
+              border: `1px solid ${theme.border}`,
+              borderRadius: 20,
+              padding: "6px 12px 6px 6px",
+              cursor: "pointer",
+              color: theme.ink,
             }}
           >
-            <Aperture size={18} strokeWidth={2} />
-          </div>
-          <h1 className="tl-display" style={{ fontSize: 26, fontWeight: 700, margin: 0, letterSpacing: "-0.01em" }}>
-            TaskLens
-          </h1>
+            <span
+              style={{
+                width: 20,
+                height: 20,
+                borderRadius: "50%",
+                background: dark ? theme.tealBg : "#FBF3E4",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                color: dark ? theme.teal : theme.amber,
+              }}
+            >
+              {dark ? <Moon size={12} /> : <Sun size={12} />}
+            </span>
+            <span style={{ fontSize: 12, fontWeight: 500 }}>{dark ? "Dark" : "Light"}</span>
+          </button>
         </div>
-        <p style={{ margin: "0 0 28px 48px", color: "#6B7570", fontSize: 14 }}>
+        <p style={{ margin: "0 0 28px 48px", color: theme.sub, fontSize: 14 }}>
           Point it at a screenshot or a wall of text. It comes back a task.
         </p>
 
@@ -319,7 +403,7 @@ export default function TaskLens() {
             >
               {loading ? (
                 <>
-                  <Loader2 size={14} className="tl-spin" style={{ animation: "spin 0.8s linear infinite" }} /> Reading…
+                  <Loader2 size={14} style={{ animation: "spin 0.8s linear infinite" }} /> Reading…
                 </>
               ) : (
                 <>
@@ -327,7 +411,6 @@ export default function TaskLens() {
                 </>
               )}
             </button>
-            <style>{`@keyframes spin { from { transform: rotate(0deg);} to { transform: rotate(360deg);} }`}</style>
           </div>
 
           {/* Task list */}
@@ -437,7 +520,7 @@ export default function TaskLens() {
   );
 }
 
-function ModeTab({ active, onClick, icon, label }) {
+function ModeTab({ theme, active, onClick, icon, label }) {
   return (
     <button
       onClick={onClick}
@@ -449,9 +532,9 @@ function ModeTab({ active, onClick, icon, label }) {
         fontSize: 12.5,
         fontWeight: 500,
         borderRadius: 4,
-        border: `1px solid ${active ? "#1B1F1D" : "#E4E1D8"}`,
-        background: active ? "#1B1F1D" : "transparent",
-        color: active ? "#FAF9F6" : "#6B7570",
+        border: `1px solid ${active ? theme.ink : theme.border}`,
+        background: active ? theme.ink : "transparent",
+        color: active ? theme.invert : theme.sub,
         cursor: "pointer",
       }}
     >
@@ -460,73 +543,4 @@ function ModeTab({ active, onClick, icon, label }) {
   );
 }
 
-const cardStyle = {
-  border: "1px solid #E4E1D8",
-  background: "#FFFFFF",
-  borderRadius: 4,
-  padding: "12px 14px",
-};
 
-const inputStyle = {
-  width: "100%",
-  boxSizing: "border-box",
-  border: "1px solid #E4E1D8",
-  borderRadius: 3,
-  padding: "7px 9px",
-  fontSize: 13,
-  outline: "none",
-};
-
-const primaryBtnStyle = {
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  gap: 7,
-  background: "#1B1F1D",
-  color: "#FAF9F6",
-  border: "none",
-  borderRadius: 4,
-  padding: "10px 16px",
-  fontSize: 13,
-  fontWeight: 600,
-};
-
-const smallBtnStyle = {
-  display: "flex",
-  alignItems: "center",
-  gap: 5,
-  background: "#FFFFFF",
-  color: "#1B1F1D",
-  border: "1px solid #E4E1D8",
-  borderRadius: 4,
-  padding: "6px 10px",
-  fontSize: 12,
-  fontWeight: 500,
-  cursor: "pointer",
-};
-
-const ghostIconBtn = {
-  background: "transparent",
-  border: "none",
-  color: "#A9A499",
-  cursor: "pointer",
-  padding: 4,
-  borderRadius: 3,
-  display: "flex",
-};
-
-const iconBtnStyle = {
-  position: "absolute",
-  top: 6,
-  right: 6,
-  background: "rgba(27,31,29,0.75)",
-  border: "none",
-  borderRadius: "50%",
-  width: 22,
-  height: 22,
-  color: "#fff",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  cursor: "pointer",
-};
