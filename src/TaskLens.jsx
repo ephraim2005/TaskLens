@@ -145,9 +145,6 @@ export default function TaskLens() {
 
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || `Request failed (${response.status})`);
-
-      if (!response.ok) throw new Error(`Request failed (${response.status})`);
-      const data = await response.json();
       const raw = data.content.map((b) => (b.type === "text" ? b.text : "")).join("").trim();
       const cleaned = raw.replace(/^```json\s*|^```\s*|```$/g, "").trim();
       const parsed = JSON.parse(cleaned);
