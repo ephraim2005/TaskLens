@@ -25,6 +25,7 @@ Rules:
 - "description" is one brief sentence of context, or "" if none is evident.
 - "dueDate" is formatted like "Oct 14, 2026" if a year is inferable, otherwise "Oct 14". Use "" if no date is present in the source.
 - If truly nothing task-like is present, return {"tasks":[]}.`;
+
 const THEMES = {
   light: {
     bg: "#FAF9F6",
@@ -62,10 +63,10 @@ const THEMES = {
   },
 };
 
-
 export default function TaskLens() {
   const [dark, setDark] = useState(false);
   const theme = dark ? THEMES.dark : THEMES.light;
+
   const [tasks, setTasks] = useState([]);
   const [mode, setMode] = useState("image"); // 'image' | 'text'
   const [imagePreview, setImagePreview] = useState(null);
@@ -197,7 +198,7 @@ export default function TaskLens() {
     setTasks((prev) => prev.filter((t) => t.id !== id));
     if (editingId === id) setEditingId(null);
   };
-  
+
   const cardStyle = { border: `1px solid ${theme.border}`, background: theme.panelBg, borderRadius: 4, padding: "12px 14px" };
   const inputStyle = { width: "100%", boxSizing: "border-box", border: `1px solid ${theme.border}`, borderRadius: 3, padding: "7px 9px", fontSize: 13, outline: "none", background: theme.panelBg, color: theme.ink };
   const primaryBtnStyle = { display: "flex", alignItems: "center", justifyContent: "center", gap: 7, background: theme.ink, color: theme.invert, border: "none", borderRadius: 4, padding: "10px 16px", fontSize: 13, fontWeight: 600 };
@@ -296,8 +297,8 @@ export default function TaskLens() {
           {/* Capture panel */}
           <div>
             <div style={{ display: "flex", gap: 6, marginBottom: 12 }}>
-              <ModeTab active={mode === "image"} onClick={() => { setMode("image"); setError(null); }} icon={<ImageIcon size={14} />} label="Screenshot" />
-              <ModeTab active={mode === "text"} onClick={() => { setMode("text"); setError(null); }} icon={<Type size={14} />} label="Text" />
+              <ModeTab theme={theme} active={mode === "image"} onClick={() => { setMode("image"); setError(null); }} icon={<ImageIcon size={14} />} label="Screenshot" />
+              <ModeTab theme={theme} active={mode === "text"} onClick={() => { setMode("text"); setError(null); }} icon={<Type size={14} />} label="Text" />
             </div>
 
             {mode === "image" ? (
@@ -309,9 +310,9 @@ export default function TaskLens() {
                 tabIndex={0}
                 style={{
                   position: "relative",
-                  border: `1.5px dashed ${dragActive ? "#E1A339" : "#D8D3C6"}`,
+                  border: `1.5px dashed ${dragActive ? theme.amber : theme.border}`,
                   borderRadius: 4,
-                  background: dragActive ? "#FBF3E4" : "#FFFFFF",
+                  background: dragActive ? theme.dashedBgActive : theme.dashedBg,
                   minHeight: 220,
                   display: "flex",
                   flexDirection: "column",
@@ -341,8 +342,8 @@ export default function TaskLens() {
                   </div>
                 ) : (
                   <>
-                    <ScanLine size={26} color="#B8B2A2" strokeWidth={1.5} />
-                    <p style={{ fontSize: 13, color: "#6B7570", textAlign: "center", margin: "12px 0 4px" }}>
+                    <ScanLine size={26} color={theme.borderHover} strokeWidth={1.5} />
+                    <p style={{ fontSize: 13, color: theme.sub, textAlign: "center", margin: "12px 0 4px" }}>
                       Drop a screenshot, paste one (⌘V), or
                     </p>
                     <button
@@ -371,19 +372,20 @@ export default function TaskLens() {
                   width: "100%",
                   minHeight: 220,
                   boxSizing: "border-box",
-                  border: "1.5px solid #D8D3C6",
+                  border: `1.5px solid ${theme.border}`,
                   borderRadius: 4,
                   padding: 14,
                   fontSize: 13.5,
                   resize: "vertical",
-                  background: "#FFFFFF",
+                  background: theme.panelBg,
+                  color: theme.ink,
                   outline: "none",
                 }}
               />
             )}
 
             {error && (
-              <div style={{ display: "flex", gap: 6, alignItems: "flex-start", marginTop: 10, fontSize: 12.5, color: "#A14E1F" }}>
+              <div style={{ display: "flex", gap: 6, alignItems: "flex-start", marginTop: 10, fontSize: 12.5, color: theme.error }}>
                 <AlertCircle size={14} style={{ flexShrink: 0, marginTop: 1 }} />
                 <span>{error}</span>
               </div>
@@ -416,7 +418,7 @@ export default function TaskLens() {
           {/* Task list */}
           <div>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
-              <span className="tl-mono" style={{ fontSize: 11.5, color: "#8B9A94", textTransform: "uppercase" }}>
+              <span className="tl-mono" style={{ fontSize: 11.5, color: theme.sub, textTransform: "uppercase" }}>
                 {tasks.length} {tasks.length === 1 ? "task" : "tasks"}
               </span>
               <button className="tl-btn" onClick={addManualTask} style={smallBtnStyle}>
@@ -427,11 +429,11 @@ export default function TaskLens() {
             {tasks.length === 0 ? (
               <div
                 style={{
-                  border: "1px dashed #E4E1D8",
+                  border: `1px dashed ${theme.border}`,
                   borderRadius: 4,
                   padding: "48px 20px",
                   textAlign: "center",
-                  color: "#A9A499",
+                  color: theme.faint,
                 }}
               >
                 <Aperture size={22} style={{ marginBottom: 10, opacity: 0.5 }} />
@@ -442,7 +444,7 @@ export default function TaskLens() {
               <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                 {tasks.map((task) =>
                   editingId === task.id ? (
-                    <div key={task.id} style={{ ...cardStyle, borderColor: "#2C6E76", background: "#FFFFFF" }}>
+                    <div key={task.id} style={{ ...cardStyle, borderColor: theme.teal, background: theme.panelBg }}>
                       <input
                         value={draft.title}
                         onChange={(e) => setDraft({ ...draft, title: e.target.value })}
@@ -467,7 +469,7 @@ export default function TaskLens() {
                         <button className="tl-btn" onClick={() => setEditingId(null)} style={smallBtnStyle}>
                           Cancel
                         </button>
-                        <button className="tl-btn" onClick={saveEdit} style={{ ...smallBtnStyle, background: "#1B1F1D", color: "#FAF9F6", borderColor: "#1B1F1D" }}>
+                        <button className="tl-btn" onClick={saveEdit} style={{ ...smallBtnStyle, background: theme.ink, color: theme.invert, borderColor: theme.ink }}>
                           <Check size={13} /> Save
                         </button>
                       </div>
@@ -476,9 +478,9 @@ export default function TaskLens() {
                     <div key={task.id} className="tl-card" style={cardStyle}>
                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 10 }}>
                         <div style={{ minWidth: 0 }}>
-                          <p style={{ margin: 0, fontWeight: 600, fontSize: 14.5, color: "#1B1F1D" }}>{task.title}</p>
+                          <p style={{ margin: 0, fontWeight: 600, fontSize: 14.5, color: theme.ink }}>{task.title}</p>
                           {task.description && (
-                            <p style={{ margin: "3px 0 0", fontSize: 12.5, color: "#6B7570", lineHeight: 1.4 }}>{task.description}</p>
+                            <p style={{ margin: "3px 0 0", fontSize: 12.5, color: theme.sub, lineHeight: 1.4 }}>{task.description}</p>
                           )}
                           {task.dueDate && (
                             <span
@@ -488,8 +490,8 @@ export default function TaskLens() {
                                 alignItems: "center",
                                 gap: 4,
                                 fontSize: 11,
-                                color: "#2C6E76",
-                                background: "#EAF3F3",
+                                color: theme.teal,
+                                background: theme.tealBg,
                                 padding: "3px 7px",
                                 borderRadius: 3,
                                 marginTop: 8,
@@ -542,5 +544,3 @@ function ModeTab({ theme, active, onClick, icon, label }) {
     </button>
   );
 }
-
-
